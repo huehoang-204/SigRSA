@@ -218,7 +218,37 @@ function verifySignature(fileId) {
                 case 'valid':
                     badgeClass = 'bg-success';
                     iconClass = 'fas fa-check-circle';
-                    resultHtml = `
+                    resultHtml = `<span class="badge ${badgeClass}">
+                        <i class="${iconClass} me-1"></i>Chữ ký hợp lệ
+                    </span>`;
+                    break;
+                case 'invalid':
+                    badgeClass = 'bg-danger';
+                    iconClass = 'fas fa-times-circle';
+                    resultHtml = `<span class="badge ${badgeClass}">
+                        <i class="${iconClass} me-1"></i>Chữ ký không hợp lệ
+                    </span>`;
+                    break;
+                case 'modified':
+                    badgeClass = 'bg-warning';
+                    iconClass = 'fas fa-exclamation-circle';
+                    resultHtml = `<span class="badge ${badgeClass}">
+                        <i class="${iconClass} me-1"></i>File đã bị thay đổi
+                    </span>`;
+                    break;
+                case 'no_signature':
+                    badgeClass = 'bg-secondary';
+                    iconClass = 'fas fa-minus-circle';
+                    resultHtml = `<span class="badge ${badgeClass}">
+                        <i class="${iconClass} me-1"></i>Không có chữ ký
+                    </span>`;
+                    break;
+                default:
+                    badgeClass = 'bg-danger';
+                    iconClass = 'fas fa-exclamation-triangle';
+                    resultHtml = `<span class="badge ${badgeClass}">
+                        <i class="${iconClass} me-1"></i>${data.message || 'Lỗi xác minh'}
+                    </span>`;
                         <div class="alert alert-success">
                             <i class="fas fa-check-circle me-2"></i>
                             <strong>Signature Valid!</strong><br>
