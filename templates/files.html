@@ -223,14 +223,6 @@ function verifySignature(fileId) {
                     type = 'success';
                     if (confirm('Bạn có muốn tải chữ ký số không?')) {
                         window.location.href = `/download_signature/${fileId}`;
-                    } else {
-                        const verificationModal = new bootstrap.Modal(document.getElementById('verificationModal'));
-                        document.getElementById('verificationResult').innerHTML = `
-                            <div class="alert alert-success">
-                                <i class="fas fa-check-circle me-2"></i>
-                                <strong>${message}</strong>
-                            </div>`;
-                        verificationModal.show();
                     }
                     break;
                 case 'invalid':
