@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+
+{% block title %}RSA Keys - Secure File Transfer{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-key me-2"></i>RSA Key Management
+            </h2>
+            {% if user.public_key %}
+            <form method="POST" action="{{ url_for('generate_keys') }}" class="d-inline">
+                <button type="submit" class="btn btn-warning" onclick="return confirm('This will generate new keys and invalidate existing signatures. Continue?')">
+                    <i class="fas fa-sync-alt me-1"></i>Regenerate Keys
+                </button>
+            </form>
+            {% else %}
+            <form method="POST" action="{{ url_for('generate_keys') }}" class="d-inline">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>Generate Keys
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <!-- Public Key Card -->
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-unlock me-2"></i>Public Key
+                    {% if user.public_key %}
+                    <span class="badge bg-success ms-2">Available</span>
+                    {% else %}
+                    <span class="badge bg-danger ms-2">Not Generated</span>
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if user.public_key %}
+                <p class="text-muted">Used for signature verification</p>
+                <div class="mb-3">
+                    <label class="form-label">Public Key (PEM Format)</label>
+                    <textarea class="form-control font-monospace" rows="12" readonly>{{ user.public_key }}</textarea>
+                </div>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary" onclick="copyToClipboard('public-key')">
+                        <i class="fas fa-copy me-1"></i>Copy Public Key
+                    </button>
+                    <button class="btn btn-outline-info" onclick="downloadKey('public', '{{ user.username }}_public_key.pem')">
+                        <i class="fas fa-download me-1"></i>Download Public Key
+                    </button>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-key fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No public key available</p>
+                    <p class="small text-muted">Generate a key pair to enable digital signatures</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6 mb-4">
+        <!-- Private Key Card -->
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-lock me-2"></i>Private Key
+                    {% if user.private_key %}
+                    <span class="badge bg-success ms-2">Available</span>
+                    {% else %}
+                    <span class="badge bg-danger ms-2">Not Generated</span>
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if user.private_key %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Keep this private!</strong> Your private key is used to create digital signatures.
+                </div>
+                <p class="text-muted">Used for creating digital signatures</p>
+                <div class="mb-3">
+                    <label class="form-label">Private Key (PEM Format)</label>
+                    <textarea class="form-control font-monospace" rows="12" readonly id="private-key-display" style="display: none;">{{ user.private_key }}</textarea>
+                    <div id="private-key-hidden" class="text-center py-5">
+                        <i class="fas fa-eye-slash fa-2x text-muted mb-3"></i>
+                        <p class="text-muted">Private key is hidden for security</p>
+                        <button class="btn btn-outline-secondary" onclick="togglePrivateKey()">
+                            <i class="fas fa-eye me-1"></i>Show Private Key
+                        </button>
+                    </div>
+                </div>
+                <div class="d-grid gap-2" id="private-key-actions" style="display: none;">
+                    <button class="btn btn-outline-primary" onclick="copyToClipboard('private-key')">
+                        <i class="fas fa-copy me-1"></i>Copy Private Key
+                    </button>
+                    <button class="btn btn-outline-info" onclick="downloadKey('private', '{{ user.username }}_private_key.pem')">
+                        <i class="fas fa-download me-1"></i>Download Private Key
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="togglePrivateKey()">
+                        <i class="fas fa-eye-slash me-1"></i>Hide Private Key
+                    </button>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-lock fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No private key available</p>
+                    <p class="small text-muted">Generate a key pair to enable digital signatures</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Key Information -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Key Information & Security
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>How RSA Keys Work:</h6>
+                        <ul class="mb-3">
+                            <li><strong>Public Key:</strong> Used to verify signatures created by your private key</li>
+                            <li><strong>Private Key:</strong> Used to create digital signatures for your files</li>
+                            <li><strong>Key Size:</strong> 2048 bits for strong security</li>
+                            <li><strong>Algorithm:</strong> RSA with PSS padding and SHA-256</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Security Best Practices:</h6>
+                        <ul class="mb-3">
+                            <li>Keep your private key secret and secure</li>
+                            <li>You can safely share your public key</li>
+                            <li>Regenerate keys if you suspect compromise</li>
+                            <li>Download and backup your keys safely</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                {% if user.public_key %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Key Status:</strong> Your RSA key pair is ready for file signing and verification.
+                    Files uploaded now will be automatically signed with your private key.
+                </div>
+                {% else %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>No Keys Available:</strong> Generate RSA keys to enable digital signature functionality.
+                    Without keys, uploaded files will not be signed.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function togglePrivateKey() {
+    const display = document.getElementById('private-key-display');
+    const hidden = document.getElementById('private-key-hidden');
+    const actions = document.getElementById('private-key-actions');
+    
+    if (display.style.display === 'none') {
+        display.style.display = 'block';
+        hidden.style.display = 'none';
+        actions.style.display = 'block';
+    } else {
+        display.style.display = 'none';
+        hidden.style.display = 'block';
+        actions.style.display = 'none';
+    }
+}
+
+function copyToClipboard(type) {
+    let textarea;
+    if (type === 'public-key') {
+        textarea = document.querySelector('textarea[readonly]:not(#private-key-display)');
+    } else {
+        textarea = document.getElementById('private-key-display');
+    }
+    
+    textarea.select();
+    textarea.setSelectionRange(0, 99999); // For mobile devices
+    
+    try {
+        document.execCommand('copy');
+        
+        // Show feedback
+        const button = event.target.closest('button');
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
+        button.classList.remove('btn-outline-primary');
+        button.classList.add('btn-success');
+        
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.classList.remove('btn-success');
+            button.classList.add('btn-outline-primary');
+        }, 2000);
+    } catch (err) {
+        alert('Failed to copy to clipboard');
+    }
+}
+
+function downloadKey(type, filename) {
+    let content;
+    if (type === 'public') {
+        content = document.querySelector('textarea[readonly]:not(#private-key-display)').value;
+    } else {
+        content = document.getElementById('private-key-display').value;
+    }
+    
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+</script>
+{% endblock %}

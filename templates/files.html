@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+
+{% block title %}Files - Secure File Transfer{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="fas fa-folder me-2"></i>My Files
+    </h2>
+    <a href="{{ url_for('upload_page') }}" class="btn btn-primary">
+        <i class="fas fa-upload me-1"></i>Upload New File
+    </a>
+</div>
+
+{% if files %}
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>File Name</th>
+                        <th>Size</th>
+                        <th>Hash (SHA-256)</th>
+                        <th>Signature Status</th>
+                        <th>Uploaded</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for file in files %}
+                    <tr id="file-row-{{ file.id }}">
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-file me-2"></i>
+                                <div>
+                                    <div class="fw-bold">{{ file.original_filename }}</div>
+                                    <small class="text-muted">{{ file.filename }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ "%.2f"|format(file.file_size / 1024) }} KB</td>
+                        <td>
+                            <small class="font-monospace text-muted">
+                                {{ file.file_hash[:16] }}...
+                            </small>
+                        </td>
+                        <td>
+                            <div id="signature-status-{{ file.id }}">
+                                {% if file.signature %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-signature me-1"></i>Signed
+                                    </span>
+                                    <button class="btn btn-sm btn-outline-info ms-1" onclick="verifySignature({{ file.id }})">
+                                        <i class="fas fa-shield-alt"></i> Verify
+                                    </button>
+                                {% else %}
+                                    <span class="badge bg-secondary">
+                                        <i class="fas fa-minus me-1"></i>Not Signed
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>{{ file.uploaded_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{{ url_for('download_file', file_id=file.id) }}" 
+                                   class="btn btn-sm btn-outline-primary" 
+                                   title="Download">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                                <button class="btn btn-sm btn-outline-danger" 
+                                        onclick="deleteFile({{ file.id }}, '{{ file.original_filename }}')"
+                                        title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- File Statistics -->
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-files fa-2x text-primary mb-2"></i>
+                <h5>Total Files</h5>
+                <h3 class="text-primary">{{ files|length }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-signature fa-2x text-success mb-2"></i>
+                <h5>Signed Files</h5>
+                <h3 class="text-success">{{ files|selectattr('signature')|list|length }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-hdd fa-2x text-info mb-2"></i>
+                <h5>Total Size</h5>
+                <h3 class="text-info">{{ "%.2f"|format(files|sum(attribute='file_size') / 1024 / 1024) }} MB</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-shield-alt fa-2x text-warning mb-2"></i>
+                <h5>Verified</h5>
+                <h3 class="text-warning">-</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<!-- Empty State -->
+<div class="text-center py-5">
+    <i class="fas fa-folder-open fa-4x text-muted mb-4"></i>
+    <h3 class="text-muted">No files uploaded yet</h3>
+    <p class="text-muted mb-4">Start by uploading your first file with digital signature</p>
+    <a href="{{ url_for('upload_page') }}" class="btn btn-primary btn-lg">
+        <i class="fas fa-upload me-2"></i>Upload Your First File
+    </a>
+</div>
+{% endif %}
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-trash me-2"></i>Delete File
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong id="deleteFileName"></strong>?</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    This action cannot be undone. The file and its signature will be permanently deleted.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i>Delete File
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Verification Result Modal -->
+<div class="modal fade" id="verificationModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-shield-alt me-2"></i>Signature Verification
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="verificationResult"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function deleteFile(fileId, fileName) {
+    document.getElementById('deleteFileName').textContent = fileName;
+    document.getElementById('deleteForm').action = `/delete/${fileId}`;
+    
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    deleteModal.show();
+}
+
+function verifySignature(fileId) {
+    const statusElement = document.getElementById(`signature-status-${fileId}`);
+    const originalContent = statusElement.innerHTML;
+    
+    // Show loading state
+    statusElement.innerHTML = `
+        <span class="badge bg-info">
+            <i class="fas fa-spinner fa-spin me-1"></i>Verifying...
+        </span>
+    `;
+    
+    fetch(`/verify/${fileId}`)
+        .then(response => response.json())
+        .then(data => {
+            let resultHtml = '';
+            let badgeClass = '';
+            let iconClass = '';
+            
+            switch(data.status) {
+                case 'valid':
+                    badgeClass = 'bg-success';
+                    iconClass = 'fas fa-check-circle';
+                    resultHtml = `
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong>Signature Valid!</strong><br>
+                            ${data.message}
+                        </div>
+                    `;
+                    break;
+                case 'invalid':
+                    badgeClass = 'bg-danger';
+                    iconClass = 'fas fa-times-circle';
+                    resultHtml = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-times-circle me-2"></i>
+                            <strong>Invalid Signature!</strong><br>
+                            ${data.message}
+                        </div>
+                    `;
+                    break;
+                case 'modified':
+                    badgeClass = 'bg-warning';
+                    iconClass = 'fas fa-exclamation-triangle';
+                    resultHtml = `
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>File Modified!</strong><br>
+                            ${data.message}
+                        </div>
+                    `;
+                    break;
+                case 'no_signature':
+                    badgeClass = 'bg-secondary';
+                    iconClass = 'fas fa-minus';
+                    resultHtml = `
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>No Signature</strong><br>
+                            ${data.message}
+                        </div>
+                    `;
+                    break;
+                case 'no_key':
+                    badgeClass = 'bg-warning';
+                    iconClass = 'fas fa-key';
+                    resultHtml = `
+                        <div class="alert alert-warning">
+                            <i class="fas fa-key me-2"></i>
+                            <strong>No Public Key</strong><br>
+                            ${data.message}
+                        </div>
+                    `;
+                    break;
+                default:
+                    badgeClass = 'bg-danger';
+                    iconClass = 'fas fa-exclamation-triangle';
+                    resultHtml = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Verification Error</strong><br>
+                            ${data.message}
+                        </div>
+                    `;
+            }
+            
+            // Update status badge
+            statusElement.innerHTML = originalContent.replace(/bg-\w+/, badgeClass).replace(/fas fa-\S+/, iconClass);
+            
+            // Show result modal
+            document.getElementById('verificationResult').innerHTML = resultHtml;
+            const verificationModal = new bootstrap.Modal(document.getElementById('verificationModal'));
+            verificationModal.show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            statusElement.innerHTML = originalContent;
+            
+            document.getElementById('verificationResult').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Network Error</strong><br>
+                    Failed to verify signature. Please try again.
+                </div>
+            `;
+            const verificationModal = new bootstrap.Modal(document.getElementById('verificationModal'));
+            verificationModal.show();
+        });
+}
+</script>
+{% endblock %}

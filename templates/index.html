@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Secure File Transfer{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="text-center mb-5">
+            <h1 class="display-4 mb-3">
+                <i class="fas fa-shield-alt text-primary me-3"></i>
+                Secure File Transfer
+            </h1>
+            <p class="lead text-muted">
+                Upload, sign, and verify files with RSA digital signatures
+            </p>
+        </div>
+    </div>
+</div>
+
+{% if user %}
+<!-- User Dashboard -->
+<div class="row">
+    <!-- Quick Stats -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-files fa-2x text-primary mb-3"></i>
+                <h5 class="card-title">Total Files</h5>
+                <h2 class="text-primary">{{ user.files|length }}</h2>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-key fa-2x {% if user.public_key %}text-success{% else %}text-warning{% endif %} mb-3"></i>
+                <h5 class="card-title">RSA Keys</h5>
+                <p class="mb-0">
+                    {% if user.public_key %}
+                        <span class="badge bg-success">
+                            <i class="fas fa-check me-1"></i>Generated
+                        </span>
+                    {% else %}
+                        <span class="badge bg-warning">
+                            <i class="fas fa-exclamation-triangle me-1"></i>Not Generated
+                        </span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-signature fa-2x text-info mb-3"></i>
+                <h5 class="card-title">Signed Files</h5>
+                <h2 class="text-info">{{ user.files|selectattr('signature')|list|length }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt me-2"></i>Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-2">
+                        <a href="{{ url_for('upload_page') }}" class="btn btn-primary w-100">
+                            <i class="fas fa-upload me-2"></i>Upload File
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{{ url_for('files') }}" class="btn btn-secondary w-100">
+                            <i class="fas fa-folder me-2"></i>Manage Files
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{{ url_for('keys') }}" class="btn btn-info w-100">
+                            <i class="fas fa-key me-2"></i>Manage Keys
+                        </a>
+                    </div>
+                    {% if not user.public_key %}
+                    <div class="col-md-3 mb-2">
+                        <form method="POST" action="{{ url_for('generate_keys') }}" class="d-inline">
+                            <button type="submit" class="btn btn-warning w-100">
+                                <i class="fas fa-plus me-2"></i>Generate Keys
+                            </button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Files -->
+{% if recent_files %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-clock me-2"></i>Recent Files
+                </h5>
+                <a href="{{ url_for('files') }}" class="btn btn-sm btn-outline-primary">
+                    View All <i class="fas fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>File Name</th>
+                                <th>Size</th>
+                                <th>Signature</th>
+                                <th>Uploaded</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for file in recent_files %}
+                            <tr>
+                                <td>
+                                    <i class="fas fa-file me-2"></i>
+                                    {{ file.original_filename }}
+                                </td>
+                                <td>{{ "%.2f"|format(file.file_size / 1024) }} KB</td>
+                                <td>
+                                    {% if file.signature %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-signature me-1"></i>Signed
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-minus me-1"></i>Not Signed
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ file.uploaded_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    <a href="{{ url_for('download_file', file_id=file.id) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% else %}
+<!-- Welcome Screen -->
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <h2 class="mb-4">Welcome to Secure File Transfer</h2>
+                <p class="lead mb-4">
+                    Securely upload, sign, and transfer files with RSA digital signatures.
+                    Get started by logging in or creating a new account.
+                </p>
+                
+                <div class="row mt-5">
+                    <div class="col-md-4 mb-4">
+                        <div class="feature-card">
+                            <i class="fas fa-upload fa-3x text-primary mb-3"></i>
+                            <h5>Secure Upload</h5>
+                            <p class="text-muted">Upload files securely with integrity verification</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="feature-card">
+                            <i class="fas fa-signature fa-3x text-success mb-3"></i>
+                            <h5>Digital Signatures</h5>
+                            <p class="text-muted">Sign files with RSA digital signatures for authenticity</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="feature-card">
+                            <i class="fas fa-shield-alt fa-3x text-info mb-3"></i>
+                            <h5>Verification</h5>
+                            <p class="text-muted">Verify file integrity and signature authenticity</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary btn-lg mt-4" data-bs-toggle="modal" data-bs-target="#loginModal">
+                    <i class="fas fa-sign-in-alt me-2"></i>Get Started
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

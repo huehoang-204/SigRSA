@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="vi" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Truyền File An Toàn với Chữ Ký Số RSA</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        .nav-tabs .nav-link {
+            border: none;
+            border-bottom: 3px solid transparent;
+            background: none;
+            color: #6c757d;
+            font-weight: 500;
+        }
+        
+        .nav-tabs .nav-link.active {
+            background: none;
+            border-bottom: 3px solid #007bff;
+            color: #007bff;
+        }
+        
+        .nav-tabs .nav-link:hover {
+            border-bottom: 3px solid #007bff;
+            color: #007bff;
+        }
+        
+        .file-drop-zone {
+            border: 2px dashed #007bff;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .file-drop-zone:hover {
+            background: #e3f2fd;
+            border-color: #0056b3;
+        }
+        
+        .file-item {
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: white;
+        }
+        
+        .file-icon {
+            width: 48px;
+            height: 48px;
+            background: #007bff;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+        
+        .btn-custom {
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-weight: 500;
+        }
+        
+        .progress-bar-custom {
+            height: 8px;
+            border-radius: 4px;
+            background: #e9ecef;
+            overflow: hidden;
+        }
+        
+        .progress-bar-custom .progress {
+            height: 100%;
+            background: linear-gradient(90deg, #007bff, #0056b3);
+            border-radius: 4px;
+        }
+        
+        .connection-status {
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .connection-status.connected {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .connection-status.disconnected {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <!-- Header -->
+        <div class="text-center mb-4">
+            <h1 class="h3 mb-0">Truyền File An Toàn với Chữ Ký Số RSA</h1>
+        </div>
+        
+        <!-- Navigation Tabs -->
+        <ul class="nav nav-tabs justify-content-center mb-4" id="mainTabs">
+            <li class="nav-item">
+                <a class="nav-link active" id="send-tab" data-bs-toggle="tab" href="#send-content">Gửi File</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="receive-tab" data-bs-toggle="tab" href="#receive-content">Nhận File</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="manage-tab" data-bs-toggle="tab" href="#manage-content">Quản Lý File</a>
+            </li>
+        </ul>
+        
+        <!-- Tab Content -->
+        <div class="tab-content">
+            <!-- Send File Tab -->
+            <div class="tab-pane fade show active" id="send-content">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body p-4">
+                                <h4 class="text-primary mb-4">
+                                    <i class="fas fa-paper-plane me-2"></i>Gửi File
+                                </h4>
+                                
+                                <!-- Connection Status -->
+                                <div class="connection-status connected" id="sendConnectionStatus">
+                                    <i class="fas fa-circle text-warning me-2"></i>
+                                    <strong>Chưa kết nối</strong>
+                                    <div class="small mt-1">Nhập địa chỉ IP người nhận:</div>
+                                </div>
+                                
+                                <!-- IP Input -->
+                                <div class="mb-4">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="receiverIP" placeholder="172.29.80.1:5000" value="172.29.80.1:5000">
+                                        <button class="btn btn-primary" id="connectBtn">
+                                            <i class="fas fa-plug me-1"></i>Kết nối
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- File Selection Area -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold">Chọn file để gửi:</label>
+                                    <div class="file-drop-zone" id="fileDropZone">
+                                        <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                                        <h5>Chọn File</h5>
+                                        <p class="text-muted mb-0">Kéo thả file vào đây hoặc nhấp để chọn</p>
+                                        <input type="file" class="d-none" id="fileInput" multiple>
+                                    </div>
+                                </div>
+                                
+                                <!-- Send Button -->
+                                <div class="text-center">
+                                    <button class="btn btn-success btn-lg px-5" id="sendBtn" disabled>
+                                        <i class="fas fa-paper-plane me-2"></i>Gửi File
+                                    </button>
+                                </div>
+                                
+                                <!-- Progress Area -->
+                                <div id="progressArea" class="mt-4" style="display: none;">
+                                    <div class="progress-bar-custom">
+                                        <div class="progress" style="width: 0%"></div>
+                                    </div>
+                                    <div class="text-center mt-2">
+                                        <small class="text-muted">Đang gửi file...</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Receive File Tab -->
+            <div class="tab-pane fade" id="receive-content">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body p-4">
+                                <h4 class="text-primary mb-4">
+                                    <i class="fas fa-download me-2"></i>Nhận File
+                                </h4>
+                                
+                                <!-- Connection Status -->
+                                <div class="connection-status connected" id="receiveConnectionStatus">
+                                    <i class="fas fa-circle text-warning me-2"></i>
+                                    <strong>Chưa kết nối</strong>
+                                    <div class="small mt-1">Địa chỉ IP của bạn: <strong id="myIPAddress">Đang tải...</strong></div>
+                                    <div class="small">Đang chờ kết nối từ người gửi...</div>
+                                </div>
+                                
+                                <!-- Connection Requests -->
+                                <div class="mb-4" id="connectionRequests">
+                                    <h6 class="fw-bold mb-3">Yêu cầu kết nối</h6>
+                                    <div id="pendingConnections"></div>
+                                </div>
+
+                                <!-- Incoming Files -->
+                                <div class="mb-4">
+                                    <h6 class="fw-bold mb-3">File đang nhận</h6>
+                                    <div id="incomingFiles">
+                                        <div id="noIncomingFiles" class="text-center text-muted py-4">
+                                            <i class="fas fa-inbox fa-2x mb-2"></i>
+                                            <div>Không có file đang được gửi đến</div>
+                                        </div>
+                                        <div id="receivingProgress" style="display: none;">
+                                            <div class="alert alert-info">
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <i class="fas fa-download me-2"></i>
+                                                    <strong id="receivingFileName">Đang nhận file...</strong>
+                                                </div>
+                                                <div class="progress mb-2" style="height: 8px;">
+                                                    <div class="progress-bar bg-info" id="receiveProgressBar" style="width: 0%"></div>
+                                                </div>
+                                                <small class="text-muted" id="receivingStatus">Chuẩn bị nhận file...</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Received Files -->
+                                <div>
+                                    <h6 class="fw-bold mb-3">File đã nhận</h6>
+                                    <div id="receivedFiles" class="text-center text-muted py-4">
+                                        <i class="fas fa-folder-open fa-2x mb-2"></i>
+                                        <div>Đang tải danh sách file...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Manage Files Tab -->
+            <div class="tab-pane fade" id="manage-content">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10">
+                        <!-- File List Section -->
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-folder me-2"></i>Tập Tin Đã Tải Lên
+                                </h5>
+                            </div>
+                            <div class="card-body" id="fileList">
+                                <!-- Files will be loaded here -->
+                            </div>
+                        </div>
+                        
+                        <!-- Key Management Section -->
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-key me-2"></i>Quản Lý Khóa
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6 class="text-success">
+                                            <i class="fas fa-check-circle me-1"></i>Key đã có gói
+h6>
+                                        <p class="text-muted small">Chúng tôi hỗ trợ các loại mã hóa đa dạng và tự động nhận khóa RSA từ thiết bị của bạn. Bạn không cần làm gì thêm.</p>
+                                        <button id="generateKeysBtn" class="btn btn-outline-primary btn-custom" onclick="generateRSAKeys()">
+                                            <i class="fas fa-sync-alt me-1"></i>Làm mới khóa
+                                        </button>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6 class="text-info">
+                                            <i class="fas fa-shield-alt me-1"></i>Tính năng tự động nhận file
+                                        </h6>
+                                        <p class="text-muted small">Người khác có thể gửi file đến thiết bị của bạn mà không cần bạn xác nhận, miễn là họ có địa chỉ IP chính xác.</p>
+                                        <button class="btn btn-outline-info btn-custom">
+                                            <i class="fas fa-cog me-1"></i>Cấu hình tự động gửi file
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <hr class="my-4">
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6 class="text-warning">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>Thiết lập an ninh file
+                                        </h6>
+                                        <p class="text-muted small">Nhận phần cài đặt để gửi những file được mã hóa từ máy khác về máy của bạn, thông qua hệ thống của chúng tôi.</p>
+                                        <button class="btn btn-outline-warning btn-custom">
+                                            <i class="fas fa-download me-1"></i>Cấu hình và tải hướng dẫn chi tiết 
+                                        </button>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="bg-light p-3 rounded">
+                                            <h6 class="text-purple">
+                                                <i class="fas fa-code me-1"></i>Sau mã
+                                            </h6>
+                                            <textarea class="form-control font-monospace small" rows="3" readonly placeholder="Chưa có thông tin mã hóa..."></textarea>
+                                            <button class="btn btn-purple btn-custom mt-2 w-100">
+                                                <i class="fas fa-key me-1"></i>Xem Tron
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Key Info Cards -->
+                                <div class="row mt-4">
+                                    <div class="col-md-6">
+                                        <div class="card bg-primary text-white">
+                                            <div class="card-body text-center">
+                                                <h6>Khóa Công Khai</h6>
+                                                <button class="btn btn-light btn-sm">Tải xuống</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card bg-success text-white">
+                                            <div class="card-body text-center">
+                                                <h6>Khóa Riêng Tư</h6>
+                                                <button class="btn btn-light btn-sm">Tải xuống</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // File drag and drop functionality
+        const fileDropZone = document.getElementById('fileDropZone');
+        const fileInput = document.getElementById('fileInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const connectBtn = document.getElementById('connectBtn');
+        const progressArea = document.getElementById('progressArea');
+        
+        // Click to select file
+        fileDropZone.addEventListener('click', () => fileInput.click());
+        
+        // Drag and drop events
+        fileDropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileDropZone.style.background = '#e3f2fd';
+        });
+        
+        fileDropZone.addEventListener('dragleave', () => {
+            fileDropZone.style.background = '#f8f9fa';
+        });
+        
+        fileDropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileDropZone.style.background = '#f8f9fa';
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                updateFileSelection();
+            }
+        });
+        
+        // File input change
+        fileInput.addEventListener('change', updateFileSelection);
+        
+        function updateFileSelection() {
+            const files = fileInput.files;
+            if (files.length > 0) {
+                const file = files[0];
+                fileDropZone.innerHTML = `
+                    <i class="fas fa-file fa-2x text-success mb-2"></i>
+                    <h6>${file.name}</h6>
+                    <p class="text-muted small mb-0">Kích thước: ${(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                `;
+                sendBtn.disabled = false;
+            }
+        }
+        
+        // Connect button
+        connectBtn.addEventListener('click', () => {
+            const ip = document.getElementById('receiverIP').value;
+            if (ip) {
+                connectBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Đang kết nối...';
+                connectBtn.disabled = true;
+                
+                // Send connection request
+                fetch('/request_connection', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ receiver_ip: ip })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        connectBtn.innerHTML = '<i class="fas fa-clock me-1"></i>Chờ phản hồi...';
+                        // Poll for connection status
+                        checkConnectionStatus();
+                    } else {
+                        connectBtn.innerHTML = '<i class="fas fa-times me-1"></i>Kết nối thất bại';
+                        connectBtn.classList.add('btn-danger');
+                        setTimeout(() => {
+                            connectBtn.innerHTML = '<i class="fas fa-plug me-1"></i>Kết nối';
+                            connectBtn.classList.remove('btn-danger');
+                            connectBtn.disabled = false;
+                        }, 3000);
+                    }
+                })
+                .catch(error => {
+                    connectBtn.innerHTML = '<i class="fas fa-times me-1"></i>Lỗi kết nối';
+                    connectBtn.classList.add('btn-danger');
+                    setTimeout(() => {
+                        connectBtn.innerHTML = '<i class="fas fa-plug me-1"></i>Kết nối';
+                        connectBtn.classList.remove('btn-danger');
+                        connectBtn.disabled = false;
+                    }, 3000);
+                });
+            }
+        });
+        
+        function checkConnectionStatus() {
+            fetch('/connection_status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'accepted') {
+                        connectBtn.innerHTML = '<i class="fas fa-check me-1"></i>Đã kết nối';
+                        connectBtn.classList.remove('btn-primary');
+                        connectBtn.classList.add('btn-success');
+                        
+                        // Update connection status display
+                        updateConnectionStatus('send', 'connected');
+                        
+                    } else if (data.status === 'rejected') {
+                        connectBtn.innerHTML = '<i class="fas fa-times me-1"></i>Bị từ chối';
+                        connectBtn.classList.add('btn-danger');
+                        setTimeout(() => {
+                            connectBtn.innerHTML = '<i class="fas fa-plug me-1"></i>Kết nối';
+                            connectBtn.classList.remove('btn-danger');
+                            connectBtn.disabled = false;
+                        }, 3000);
+                    } else if (data.status === 'pending') {
+                        // Keep checking
+                        setTimeout(checkConnectionStatus, 2000);
+                    }
+                });
+        }
+        
+        // Update connection status display
+        function updateConnectionStatus(side, status) {
+            const statusElement = side === 'send' ? 
+                document.getElementById('sendConnectionStatus') : 
+                document.getElementById('receiveConnectionStatus');
+            
+            if (status === 'connected') {
+                statusElement.className = 'connection-status connected';
+                if (side === 'send') {
+                    statusElement.innerHTML = `
+                        <i class="fas fa-circle text-success me-2"></i>
+                        <strong>Đã kết nối thành công!</strong>
+                        <div class="small mt-1">Sẵn sàng gửi file đến máy nhận</div>
+                    `;
+                } else {
+                    statusElement.innerHTML = `
+                        <i class="fas fa-circle text-success me-2"></i>
+                        <strong>Đã kết nối thành công!</strong>
+                        <div class="small mt-1">Sẵn sàng nhận file từ máy gửi</div>
+                    `;
+                }
+            } else if (status === 'disconnected') {
+                statusElement.className = 'connection-status disconnected';
+                statusElement.innerHTML = `
+                    <i class="fas fa-circle text-warning me-2"></i>
+                    <strong>Chưa kết nối</strong>
+                    <div class="small mt-1">${side === 'send' ? 'Nhập địa chỉ IP người nhận:' : 'Đang chờ kết nối từ người gửi...'}</div>
+                `;
+            }
+        }
+        
+        // Send button
+        sendBtn.addEventListener('click', () => {
+            if (fileInput.files.length > 0) {
+                sendFile();
+            }
+        });
+        
+        function sendFile() {
+            const file = fileInput.files[0];
+            if (!file) return;
+            
+            // Start sending file
+            progressArea.style.display = 'block';
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang gửi...';
+            
+            // Notify receiver that file transfer is starting
+            startFileTransfer(file);
+            
+            // Create FormData and send file
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            // Upload file using existing upload endpoint
+            fetch('/upload_file', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Simulate progress for UI with sync to receiver
+                    let progress = 0;
+                    const progressBar = progressArea.querySelector('.progress');
+                    
+                    const interval = setInterval(() => {
+                        progress += Math.random() * 10 + 5; // 5-15% increment
+                        if (progress > 100) progress = 100;
+                        
+                        progressBar.style.width = progress + '%';
+                        
+                        // Update receiver progress
+                        updateReceiverProgress(file.name, progress);
+                        
+                        if (progress >= 100) {
+                            clearInterval(interval);
+                            setTimeout(() => {
+                                progressArea.style.display = 'none';
+                                sendBtn.innerHTML = '<i class="fas fa-check me-2"></i>Đã gửi thành công';
+                                sendBtn.classList.remove('btn-success');
+                                sendBtn.classList.add('btn-outline-success');
+                                
+                                // Complete file transfer
+                                completeFileTransfer(file.name, file.size);
+                            }, 500);
+                        }
+                    }, 300);
+                } else {
+                    throw new Error('Upload failed');
+                }
+            })
+            .catch(error => {
+                progressArea.style.display = 'none';
+                sendBtn.innerHTML = '<i class="fas fa-times me-2"></i>Gửi thất bại';
+                sendBtn.classList.add('btn-danger');
+                setTimeout(() => {
+                    sendBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Gửi File';
+                    sendBtn.classList.remove('btn-danger');
+                    sendBtn.disabled = false;
+                }, 3000);
+            });
+        }
+        
+        // Start file transfer notification
+        function startFileTransfer(file) {
+            fetch('/start_file_transfer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    file_name: file.name,
+                    file_size: file.size
+                })
+            });
+        }
+        
+        // Update receiver progress
+        function updateReceiverProgress(fileName, progress) {
+            fetch('/update_transfer_progress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    file_name: fileName,
+                    progress: progress
+                })
+            });
+        }
+        
+        // Complete file transfer
+        function completeFileTransfer(fileName, fileSize) {
+            fetch('/complete_file_transfer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    file_name: fileName,
+                    file_size: fileSize
+                })
+            });
+        }
+        
+        // Notify receiver about new file
+        function notifyFileReceived(fileName, fileSize) {
+            fetch('/notify_file_received', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    file_name: fileName,
+                    file_size: fileSize
+                })
+            });
+        }
+        
+        // Load file list when manage tab is shown
+        document.getElementById('manage-tab').addEventListener('shown.bs.tab', function() {
+            loadFileList();
+            checkKeysStatus();
+        });
+        
+        // Check RSA keys status
+        function checkKeysStatus() {
+            fetch('/check_keys_status')
+                .then(response => response.json())
+                .then(data => {
+                    const keyStatus = document.getElementById('keyStatus');
+                    const generateBtn = document.getElementById('generateKeysBtn');
+                    
+                    if (data.has_keys) {
+                        keyStatus.innerHTML = `
+                            <div class="alert alert-success">
+                                <i class="fas fa-key me-2"></i>
+                                Key đã có sẵn để ký số file của bạn!
+                            </div>
+                        `;
+                        generateBtn.innerHTML = '<i class="fas fa-sync-alt me-2"></i>Làm mới khóa';
+                    } else {
+                        keyStatus.innerHTML = `
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Chưa có khóa RSA để thực hiện việc ký số file của bạn!
+                            </div>
+                        `;
+                        generateBtn.innerHTML = '<i class="fas fa-key me-2"></i>Làm mới khóa';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking keys status:', error);
+                });
+        }
+        
+        // Generate RSA keys
+        function generateRSAKeys() {
+            const generateBtn = document.getElementById('generateKeysBtn');
+            const originalText = generateBtn.innerHTML;
+            
+            generateBtn.disabled = true;
+            generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang tạo khóa...';
+            
+            fetch('/generate_keys', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    checkKeysStatus();
+                } else {
+                    showNotification(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showNotification('Lỗi khi tạo khóa RSA', 'error');
+                console.error('Error generating keys:', error);
+            })
+            .finally(() => {
+                generateBtn.disabled = false;
+                generateBtn.innerHTML = originalText;
+            });
+        }
+        
+        // Delete file function
+        function deleteFile(fileId) {
+            if (!confirm('Bạn có chắc chắn muốn xóa file này?')) {
+                return;
+            }
+            
+            fetch(`/delete/${fileId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    loadFileList(); // Reload file list
+                } else {
+                    showNotification(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showNotification('Lỗi khi xóa file', 'error');
+                console.error('Error deleting file:', error);
+            });
+        }
+        
+        function loadFileList() {
+            const fileList = document.getElementById('fileList');
+            
+            // Simulate loading files
+            fileList.innerHTML = `
+                <div class="text-center py-3">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                fetch('/files_api')
+                    .then(response => response.json())
+                    .then(files => {
+                        if (files.length === 0) {
+                            fileList.innerHTML = `
+                                <div class="text-center text-muted py-4">
+                                    <i class="fas fa-folder-open fa-2x mb-2"></i>
+                                    <div>Chưa có file nào được tải lên</div>
+                                </div>
+                            `;
+                        } else {
+                            fileList.innerHTML = files.map(file => `
+                                <div class="file-item d-flex align-items-center">
+                                    <div class="file-icon me-3">
+                                        <i class="fas fa-file"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">${file.name}</h6>
+                                        <small class="text-muted">Đã tải lên và ký</small>
+                                    </div>
+                                    <div class="btn-group">
+                                        <a href="/download/${file.id}" class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-download me-1"></i>Tải xuống
+                                        </a>
+                                        <button class="btn btn-outline-info btn-sm" onclick="verifyFileSignature(${file.id})">
+                                            <i class="fas fa-signature me-1"></i>Xác minh
+                                        </button>
+                                        <button class="btn btn-outline-danger btn-sm" onclick="deleteFile(${file.id})">
+                                            <i class="fas fa-trash me-1"></i>Xóa
+                                        </button>
+                                    </div>
+                                </div>
+                            `).join('');
+                        }
+                    })
+                    .catch(() => {
+                        fileList.innerHTML = `
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Không thể tải danh sách file
+                            </div>
+                        `;
+                    });
+            }, 1000);
+        }
+        
+        // Load file list on page load
+        loadFileList();
+        
+        // Get and display current IP address
+        fetch('/get_my_ip')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('myIPAddress').textContent = data.ip + ':5000';
+            })
+            .catch(error => {
+                document.getElementById('myIPAddress').textContent = 'Không thể lấy IP';
+            });
+        
+        // Check for incoming connection requests (for receive tab)
+        function checkConnectionRequests() {
+            fetch('/check_connection_requests')
+                .then(response => response.json())
+                .then(data => {
+                    const pendingConnections = document.getElementById('pendingConnections');
+                    
+                    if (data.requests && data.requests.length > 0) {
+                        pendingConnections.innerHTML = data.requests.map(request => `
+                            <div class="alert alert-warning d-flex align-items-center justify-content-between">
+                                <div>
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <strong>Yêu cầu kết nối từ:</strong> ${request.sender_ip}
+                                    <div class="small text-muted">Muốn gửi file đến máy của bạn</div>
+                                </div>
+                                <div class="btn-group">
+                                    <button class="btn btn-success btn-sm" onclick="respondToConnection('${request.id}', 'accept')">
+                                        <i class="fas fa-check me-1"></i>Chấp nhận
+                                    </button>
+                                    <button class="btn btn-danger btn-sm" onclick="respondToConnection('${request.id}', 'reject')">
+                                        <i class="fas fa-times me-1"></i>Từ chối
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        pendingConnections.innerHTML = `
+                            <div class="text-center text-muted py-3">
+                                <i class="fas fa-wifi fa-2x mb-2"></i>
+                                <div>Không có yêu cầu kết nối nào</div>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking connection requests:', error);
+                });
+        }
+        
+        // Respond to connection request
+        function respondToConnection(requestId, action) {
+            fetch('/respond_connection', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    request_id: requestId, 
+                    action: action 
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    checkConnectionRequests(); // Refresh the list
+                    
+                    if (action === 'accept') {
+                        showNotification('Đã chấp nhận kết nối!', 'success');
+                        // Update receive side connection status
+                        updateConnectionStatus('receive', 'connected');
+                    } else {
+                        showNotification('Đã từ chối kết nối!', 'info');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error responding to connection:', error);
+                showNotification('Lỗi khi phản hồi yêu cầu kết nối', 'error');
+            });
+        }
+        
+        // Show notification
+        function showNotification(message, type) {
+            const alertClass = type === 'success' ? 'alert-success' : 
+                              type === 'error' ? 'alert-danger' : 'alert-info';
+            
+            const notification = document.createElement('div');
+            notification.className = `alert ${alertClass} alert-dismissible fade show position-fixed`;
+            notification.style.top = '20px';
+            notification.style.right = '20px';
+            notification.style.zIndex = '9999';
+            notification.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 5000);
+        }
+        
+        // Auto-check for connection requests when on receive tab
+        document.getElementById('receive-tab').addEventListener('shown.bs.tab', function() {
+            checkConnectionRequests();
+            loadReceivedFiles();
+            // Set up periodic checking
+            window.connectionCheckInterval = setInterval(checkConnectionRequests, 3000);
+            window.receivedFilesInterval = setInterval(loadReceivedFiles, 2000);
+            window.transferStatusInterval = setInterval(checkTransferStatus, 1000);
+        });
+        
+        // Stop checking when leaving receive tab
+        document.getElementById('receive-tab').addEventListener('hidden.bs.tab', function() {
+            if (window.connectionCheckInterval) {
+                clearInterval(window.connectionCheckInterval);
+            }
+            if (window.receivedFilesInterval) {
+                clearInterval(window.receivedFilesInterval);
+            }
+            if (window.transferStatusInterval) {
+                clearInterval(window.transferStatusInterval);
+            }
+        });
+        
+        // Check transfer status for receiver
+        function checkTransferStatus() {
+            fetch('/check_transfer_status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'receiving') {
+                        // Show receiving progress
+                        document.getElementById('noIncomingFiles').style.display = 'none';
+                        document.getElementById('receivingProgress').style.display = 'block';
+                        document.getElementById('receivingFileName').textContent = data.file_name;
+                        document.getElementById('receiveProgressBar').style.width = data.progress + '%';
+                        document.getElementById('receivingStatus').textContent = `Đang nhận... ${Math.round(data.progress)}%`;
+                    } else if (data.status === 'completed') {
+                        // Hide receiving progress and refresh file list
+                        document.getElementById('receivingProgress').style.display = 'none';
+                        document.getElementById('noIncomingFiles').style.display = 'block';
+                        loadReceivedFiles();
+                    } else {
+                        // No transfer in progress
+                        document.getElementById('receivingProgress').style.display = 'none';
+                        document.getElementById('noIncomingFiles').style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking transfer status:', error);
+                });
+        }
+        
+        // Load received files for receive tab
+        function loadReceivedFiles() {
+            fetch('/files_api')
+                .then(response => response.json())
+                .then(files => {
+                    const receivedFiles = document.getElementById('receivedFiles');
+                    
+                    if (files.length === 0) {
+                        receivedFiles.innerHTML = `
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-folder-open fa-2x mb-2"></i>
+                                <div>Chưa nhận file nào</div>
+                            </div>
+                        `;
+                    } else {
+                        receivedFiles.innerHTML = files.map(file => `
+                            <div class="file-item d-flex align-items-center mb-3">
+                                <div class="file-icon me-3">
+                                    <i class="fas fa-file text-white"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">${file.name}</h6>
+                                    <small class="text-muted">
+                                        ${(file.size / 1024 / 1024).toFixed(2)} MB • ${file.uploaded_at}
+                                        ${file.has_signature ? ' • <span class="text-success">Đã ký</span>' : ''}
+                                    </small>
+                                </div>
+                                <div class="btn-group">
+                                    <a href="/download/${file.id}" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-download me-1"></i>Tải xuống
+                                    </a>
+                                    <button class="btn btn-outline-info btn-sm" onclick="verifyFileSignature(${file.id})">
+                                        <i class="fas fa-shield-alt me-1"></i>Xác minh
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading received files:', error);
+                });
+        }
+        
+        // Verify file signature
+        function verifyFileSignature(fileId) {
+            fetch(`/verify/${fileId}`)
+                .then(response => response.json())
+                .then(data => {
+                    let message = '';
+                    let type = 'info';
+                    
+                    switch(data.status) {
+                        case 'valid':
+                            message = 'Chữ ký hợp lệ! File không bị thay đổi.';
+                            type = 'success';
+                            break;
+                        case 'invalid':
+                            message = 'Chữ ký không hợp lệ! File có thể đã bị thay đổi.';
+                            type = 'error';
+                            break;
+                        case 'no_signature':
+                            message = 'File này không có chữ ký số.';
+                            type = 'info';
+                            break;
+                        case 'modified':
+                            message = 'File đã bị thay đổi sau khi tải lên!';
+                            type = 'error';
+                            break;
+                        default:
+                            message = data.message || 'Không thể xác minh chữ ký.';
+                            type = 'error';
+                    }
+                    
+                    showNotification(message, type);
+                })
+                .catch(error => {
+                    showNotification('Lỗi khi xác minh chữ ký', 'error');
+                });
+        }
+        
+        // Make functions global
+        window.respondToConnection = respondToConnection;
+    </script>
+</body>
+</html>
