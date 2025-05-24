@@ -971,6 +971,11 @@ h6>
                                     <button class="btn btn-outline-info btn-sm" onclick="verifyFileSignature(${file.id})">
                                         <i class="fas fa-shield-alt me-1"></i>Xác minh
                                     </button>
+                                    ${file.has_signature ? `
+                                    <a href="/download_signature/${file.id}" class="btn btn-outline-success btn-sm">
+                                        <i class="fas fa-signature me-1"></i>Tải chữ ký
+                                    </a>
+                                    ` : ''}
                                 </div>
                             </div>
                         `).join('');
