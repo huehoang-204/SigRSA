@@ -191,7 +191,7 @@
 function deleteFile(fileId, fileName) {
     document.getElementById('deleteFileName').textContent = fileName;
     document.getElementById('deleteForm').action = `/delete/${fileId}`;
-    
+
     const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
     deleteModal.show();
 }
@@ -199,59 +199,28 @@ function deleteFile(fileId, fileName) {
 function verifySignature(fileId) {
     const statusElement = document.getElementById(`signature-status-${fileId}`);
     const originalContent = statusElement.innerHTML;
-    
+
     // Show loading state
     statusElement.innerHTML = `
         <span class="badge bg-info">
             <i class="fas fa-spinner fa-spin me-1"></i>Verifying...
         </span>
     `;
-    
+
     fetch(`/verify/${fileId}`)
         .then(response => response.json())
         .then(data => {
             let resultHtml = '';
             let badgeClass = '';
             let iconClass = '';
-            
+
             switch(data.status) {
                 case 'valid':
                     badgeClass = 'bg-success';
                     iconClass = 'fas fa-check-circle';
-                    resultHtml = `<span class="badge ${badgeClass}">
-                        <i class="${iconClass} me-1"></i>Chữ ký hợp lệ
-                    </span>`;
-                    break;
-                case 'invalid':
-                    badgeClass = 'bg-danger';
-                    iconClass = 'fas fa-times-circle';
-                    resultHtml = `<span class="badge ${badgeClass}">
-                        <i class="${iconClass} me-1"></i>Chữ ký không hợp lệ
-                    </span>`;
-                    break;
-                case 'modified':
-                    badgeClass = 'bg-warning';
-                    iconClass = 'fas fa-exclamation-circle';
-                    resultHtml = `<span class="badge ${badgeClass}">
-                        <i class="${iconClass} me-1"></i>File đã bị thay đổi
-                    </span>`;
-                    break;
-                case 'no_signature':
-                    badgeClass = 'bg-secondary';
-                    iconClass = 'fas fa-minus-circle';
-                    resultHtml = `<span class="badge ${badgeClass}">
-                        <i class="${iconClass} me-1"></i>Không có chữ ký
-                    </span>`;
-                    break;
-                default:
-                    badgeClass = 'bg-danger';
-                    iconClass = 'fas fa-exclamation-triangle';
-                    resultHtml = `<span class="badge ${badgeClass}">
-                        <i class="${iconClass} me-1"></i>${data.message || 'Lỗi xác minh'}
-                    </span>`;
+                    resultHtml = `
                         <div class="alert alert-success">
-                            <i class="fas fa-check-circle me-2"></i>
-                            <strong>Signature Valid!</strong><br>
+                            <i class="${iconClass} me-2"></i>
                             ${data.message}
                         </div>
                     `;
@@ -311,10 +280,10 @@ function verifySignature(fileId) {
                         </div>
                     `;
             }
-            
+
             // Update status badge
             statusElement.innerHTML = originalContent.replace(/bg-\w+/, badgeClass).replace(/fas fa-\S+/, iconClass);
-            
+
             // Show result modal
             document.getElementById('verificationResult').innerHTML = resultHtml;
             const verificationModal = new bootstrap.Modal(document.getElementById('verificationModal'));
@@ -323,7 +292,7 @@ function verifySignature(fileId) {
         .catch(error => {
             console.error('Error:', error);
             statusElement.innerHTML = originalContent;
-            
+
             document.getElementById('verificationResult').innerHTML = `
                 <div class="alert alert-danger">
                     <i class="fas fa-exclamation-triangle me-2"></i>
@@ -337,3 +306,4 @@ function verifySignature(fileId) {
 }
 </script>
 {% endblock %}
+</replit_final_file>

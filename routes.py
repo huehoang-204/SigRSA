@@ -252,19 +252,22 @@ def verify_file(file_id):
         
         # Check if file modified
         if current_hash != file_record.file_hash:
-            return jsonify({'status': 'modified', 'message': 'File has been modified since upload'})
+            return jsonify({'status': 'modified', 'message': 'File đã bị thay đổi sau khi ký'})
         
-        # Verify signature
-        is_valid = RSACrypto.verify_signature(
-            file_record.file_hash,
-            file_record.signature,
-            user.public_key
-        )
-        
-        if is_valid:
-            return jsonify({'status': 'valid', 'message': 'Signature is valid'})
-        else:
-            return jsonify({'status': 'invalid', 'message': 'Invalid signature'})
+        try:
+            # Verify signature
+            is_valid = RSACrypto.verify_signature(
+                file_record.file_hash,
+                file_record.signature, 
+                user.public_key
+            )
+            
+            if is_valid:
+                return jsonify({'status': 'valid', 'message': 'Chữ ký hợp lệ! File không bị thay đổi.'})
+            else:
+                return jsonify({'status': 'invalid', 'message': 'Chữ ký không hợp lệ!'})
+        except Exception as e:
+            return jsonify({'status': 'error', 'message': f'Lỗi xác minh chữ ký: {str(e)}'})
             
     except Exception as e:
         return jsonify({'status': 'error', 'message': f'Verification failed: {str(e)}'})
