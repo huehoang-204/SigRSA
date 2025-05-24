@@ -5,10 +5,10 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>
-        <i class="fas fa-folder me-2"></i>My Files
+        <i class="fas fa-folder me-2"></i>Quản lý File
     </h2>
     <a href="{{ url_for('upload_page') }}" class="btn btn-primary">
-        <i class="fas fa-upload me-1"></i>Upload New File
+        <i class="fas fa-upload me-1"></i>Tải lên File mới
     </a>
 </div>
 
@@ -19,12 +19,12 @@
             <table class="table table-hover">
                 <thead>
                     <tr>
-                        <th>File Name</th>
-                        <th>Size</th>
-                        <th>Hash (SHA-256)</th>
-                        <th>Signature Status</th>
-                        <th>Uploaded</th>
-                        <th>Actions</th>
+                        <th>Tên File</th>
+                        <th>Kích thước</th>
+                        <th>Mã hash (SHA-256)</th>
+                        <th>Trạng thái chữ ký</th>
+                        <th>Thời gian tải lên</th>
+                        <th>Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -49,19 +49,19 @@
                             <div id="signature-status-{{ file.id }}">
                                 {% if file.signature %}
                                     <span class="badge bg-success">
-                                        <i class="fas fa-signature me-1"></i>Signed
+                                        <i class="fas fa-signature me-1"></i>Đã ký
                                     </span>
                                     <div class="btn-group ms-1">
                                         <button class="btn btn-sm btn-outline-info" onclick="verifySignature({{ file.id }})">
-                                            <i class="fas fa-shield-alt"></i> Verify
+                                            <i class="fas fa-shield-alt"></i> Xác thực
                                         </button>
                                         <a href="{{ url_for('download_signature', file_id=file.id) }}" class="btn btn-sm btn-outline-success">
-                                            <i class="fas fa-signature"></i> Download Signature
+                                            <i class="fas fa-signature"></i> Tải chữ ký
                                         </a>
                                     </div>
                                 {% else %}
                                     <span class="badge bg-secondary">
-                                        <i class="fas fa-minus me-1"></i>Not Signed
+                                        <i class="fas fa-minus me-1"></i>Chưa ký
                                     </span>
                                 {% endif %}
                             </div>
@@ -71,19 +71,19 @@
                             <div class="btn-group" role="group">
                                 <a href="{{ url_for('download_file', file_id=file.id) }}" 
                                    class="btn btn-sm btn-outline-primary" 
-                                   title="Download File">
+                                   title="Tải xuống">
                                     <i class="fas fa-download"></i>
                                 </a>
                                 {% if file.signature %}
                                 <a href="{{ url_for('download_signature', file_id=file.id) }}"
                                    class="btn btn-sm btn-outline-success"
-                                   title="Download Signature">
+                                   title="Tải chữ ký">
                                     <i class="fas fa-signature"></i>
                                 </a>
                                 {% endif %}
                                 <button class="btn btn-sm btn-outline-danger" 
                                         onclick="deleteFile({{ file.id }}, '{{ file.original_filename }}')"
-                                        title="Delete">
+                                        title="Xóa">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -102,7 +102,7 @@
         <div class="card text-center">
             <div class="card-body">
                 <i class="fas fa-files fa-2x text-primary mb-2"></i>
-                <h5>Total Files</h5>
+                <h5>Tổng số file</h5>
                 <h3 class="text-primary">{{ files|length }}</h3>
             </div>
         </div>
@@ -111,7 +111,7 @@
         <div class="card text-center">
             <div class="card-body">
                 <i class="fas fa-signature fa-2x text-success mb-2"></i>
-                <h5>Signed Files</h5>
+                <h5>File đã ký</h5>
                 <h3 class="text-success">{{ files|selectattr('signature')|list|length }}</h3>
             </div>
         </div>
@@ -120,7 +120,7 @@
         <div class="card text-center">
             <div class="card-body">
                 <i class="fas fa-hdd fa-2x text-info mb-2"></i>
-                <h5>Total Size</h5>
+                <h5>Tổng dung lượng</h5>
                 <h3 class="text-info">{{ "%.2f"|format(files|sum(attribute='file_size') / 1024 / 1024) }} MB</h3>
             </div>
         </div>
@@ -128,9 +128,11 @@
     <div class="col-md-3">
         <div class="card text-center">
             <div class="card-body">
-                <i class="fas fa-shield-alt fa-2x text-warning mb-2"></i>
-                <h5>Verified</h5>
-                <h3 class="text-warning">-</h3>
+                <i class="fas fa-key fa-2x text-warning mb-2"></i>
+                <h5>Quản lý khóa</h5>
+                <a href="{{ url_for('keys') }}" class="btn btn-warning mt-2">
+                    <i class="fas fa-key me-1"></i>Tạo/tải khóa
+                </a>
             </div>
         </div>
     </div>
@@ -140,10 +142,10 @@
 <!-- Empty State -->
 <div class="text-center py-5">
     <i class="fas fa-folder-open fa-4x text-muted mb-4"></i>
-    <h3 class="text-muted">No files uploaded yet</h3>
-    <p class="text-muted mb-4">Start by uploading your first file with digital signature</p>
+    <h3 class="text-muted">Chưa có file nào được tải lên</h3>
+    <p class="text-muted mb-4">Hãy bắt đầu bằng việc tải lên file đầu tiên của bạn</p>
     <a href="{{ url_for('upload_page') }}" class="btn btn-primary btn-lg">
-        <i class="fas fa-upload me-2"></i>Upload Your First File
+        <i class="fas fa-upload me-2"></i>Tải lên File
     </a>
 </div>
 {% endif %}
@@ -154,22 +156,22 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="fas fa-trash me-2"></i>Delete File
+                    <i class="fas fa-trash me-2"></i>Xóa File
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>Are you sure you want to delete <strong id="deleteFileName"></strong>?</p>
+                <p>Bạn có chắc chắn muốn xóa file <strong id="deleteFileName"></strong>?</p>
                 <div class="alert alert-warning">
                     <i class="fas fa-exclamation-triangle me-2"></i>
-                    This action cannot be undone. The file and its signature will be permanently deleted.
+                    Hành động này không thể hoàn tác. File và chữ ký số sẽ bị xóa vĩnh viễn.
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
                 <form id="deleteForm" method="POST" style="display: inline;">
                     <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-trash me-1"></i>Delete File
+                        <i class="fas fa-trash me-1"></i>Xóa File
                     </button>
                 </form>
             </div>
@@ -183,7 +185,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="fas fa-shield-alt me-2"></i>Signature Verification
+                    <i class="fas fa-shield-alt me-2"></i>Xác thực chữ ký
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -191,7 +193,7 @@
                 <div id="verificationResult"></div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
             </div>
         </div>
     </div>
@@ -203,7 +205,6 @@
 function deleteFile(fileId, fileName) {
     document.getElementById('deleteFileName').textContent = fileName;
     document.getElementById('deleteForm').action = `/delete/${fileId}`;
-
     const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
     deleteModal.show();
 }
@@ -212,10 +213,9 @@ function verifySignature(fileId) {
     const statusElement = document.getElementById(`signature-status-${fileId}`);
     const originalContent = statusElement.innerHTML;
 
-    // Show loading state
     statusElement.innerHTML = `
         <span class="badge bg-info">
-            <i class="fas fa-spinner fa-spin me-1"></i>Verifying...
+            <i class="fas fa-spinner fa-spin me-1"></i>Đang xác thực...
         </span>
     `;
 
@@ -228,13 +228,11 @@ function verifySignature(fileId) {
 
             let message = '';
             let type = 'info';
-
             switch(data.status) {
                 case 'valid':
                     message = 'Chữ ký hợp lệ! File không bị thay đổi.';
                     type = 'success';
-                    const verificationModal = new bootstrap.Modal(document.getElementById('verificationModal'));
-                    document.getElementById('verificationResult').innerHTML = `
+                    resultHtml = `
                         <div class="text-center">
                             <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
                             <h5 class="mb-4">${message}</h5>
@@ -242,17 +240,15 @@ function verifySignature(fileId) {
                                 <p class="mb-0">Bạn có muốn tải chữ ký số không?</p>
                             </div>
                             <div class="mt-4">
-                                <button class="btn btn-primary me-2" onclick="window.location.href='/download_signature/${fileId}'">
+                                <a href="/download_signature/${fileId}" class="btn btn-primary me-2">
                                     <i class="fas fa-download me-1"></i>Tải xuống chữ ký
-                                </button>
+                                </a>
                                 <button class="btn btn-secondary" data-bs-dismiss="modal">
                                     <i class="fas fa-times me-1"></i>Đóng
                                 </button>
                             </div>
                         </div>
                     `;
-                    const verificationModal = new bootstrap.Modal(document.getElementById('verificationModal'));
-                    verificationModal.show();
                     break;
                 case 'invalid':
                     badgeClass = 'bg-danger';
@@ -260,7 +256,7 @@ function verifySignature(fileId) {
                     resultHtml = `
                         <div class="alert alert-danger">
                             <i class="fas fa-times-circle me-2"></i>
-                            <strong>Invalid Signature!</strong><br>
+                            <strong>Chữ ký không hợp lệ!</strong><br>
                             ${data.message}
                         </div>
                     `;
@@ -271,7 +267,7 @@ function verifySignature(fileId) {
                     resultHtml = `
                         <div class="alert alert-warning">
                             <i class="fas fa-exclamation-triangle me-2"></i>
-                            <strong>File Modified!</strong><br>
+                            <strong>File đã bị thay đổi!</strong><br>
                             ${data.message}
                         </div>
                     `;
@@ -282,18 +278,18 @@ function verifySignature(fileId) {
                     resultHtml = `
                         <div class="alert alert-info">
                             <i class="fas fa-info-circle me-2"></i>
-                            <strong>No Signature</strong><br>
+                            <strong>Không có chữ ký</strong><br>
                             ${data.message}
                         </div>
                     `;
                     break;
-                case 'no_key':
+                 case 'no_key':
                     badgeClass = 'bg-warning';
                     iconClass = 'fas fa-key';
                     resultHtml = `
                         <div class="alert alert-warning">
                             <i class="fas fa-key me-2"></i>
-                            <strong>No Public Key</strong><br>
+                            <strong>Không có khóa công khai</strong><br>
                             ${data.message}
                         </div>
                     `;
@@ -304,16 +300,15 @@ function verifySignature(fileId) {
                     resultHtml = `
                         <div class="alert alert-danger">
                             <i class="fas fa-exclamation-triangle me-2"></i>
-                            <strong>Verification Error</strong><br>
+                            <strong>Lỗi xác thực</strong><br>
                             ${data.message}
                         </div>
                     `;
             }
 
-            // Update status badge
+            // Update status badge (in case of network error)
             statusElement.innerHTML = originalContent.replace(/bg-\w+/, badgeClass).replace(/fas fa-\S+/, iconClass);
 
-            // Show result modal
             document.getElementById('verificationResult').innerHTML = resultHtml;
             const verificationModal = new bootstrap.Modal(document.getElementById('verificationModal'));
             verificationModal.show();
@@ -321,12 +316,11 @@ function verifySignature(fileId) {
         .catch(error => {
             console.error('Error:', error);
             statusElement.innerHTML = originalContent;
-
             document.getElementById('verificationResult').innerHTML = `
                 <div class="alert alert-danger">
                     <i class="fas fa-exclamation-triangle me-2"></i>
-                    <strong>Network Error</strong><br>
-                    Failed to verify signature. Please try again.
+                    <strong>Lỗi kết nối</strong><br>
+                    Không thể xác thực chữ ký. Vui lòng thử lại.
                 </div>
             `;
             const verificationModal = new bootstrap.Modal(document.getElementById('verificationModal'));
