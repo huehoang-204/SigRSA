@@ -9,7 +9,8 @@ Hệ thống Truyền File An Toàn với Chữ Ký Số RSA là một giải ph
 
 #### Sơ Đồ Mã Hóa và Giải Mã RSA
 
-![Cơ chế RSA](https://raw.githubusercontent.com/replit/attachments/main/image_1748104184027.png)
+![image](https://github.com/user-attachments/assets/501d83b2-9540-4f5d-a3bc-13601d9a948a)
+
 
 Trong đó:
 - **M**: Văn bản gốc cần mã hóa
@@ -160,6 +161,12 @@ python main.py
 - Hash file với SHA-256
 - Lưu trữ an toàn khóa và file
 - Xác thực tự động
+
+## 📁 Demo Chương trình
+![image](https://github.com/user-attachments/assets/d59d5227-96fd-46c1-b499-95acb6128b32)
+![image](https://github.com/user-attachments/assets/4ba2e186-2303-4365-9c4a-63eef07f05fe)
+![image](https://github.com/user-attachments/assets/769fb94b-3877-4d23-8fd6-4c2a2b060889)
+
 
 ## 📁 Cấu Trúc Thư Mục
 
