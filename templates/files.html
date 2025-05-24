@@ -66,9 +66,16 @@
                             <div class="btn-group" role="group">
                                 <a href="{{ url_for('download_file', file_id=file.id) }}" 
                                    class="btn btn-sm btn-outline-primary" 
-                                   title="Download">
+                                   title="Download File">
                                     <i class="fas fa-download"></i>
                                 </a>
+                                {% if file.signature %}
+                                <a href="{{ url_for('download_signature', file_id=file.id) }}"
+                                   class="btn btn-sm btn-outline-success"
+                                   title="Download Signature">
+                                    <i class="fas fa-signature"></i>
+                                </a>
+                                {% endif %}
                                 <button class="btn btn-sm btn-outline-danger" 
                                         onclick="deleteFile({{ file.id }}, '{{ file.original_filename }}')"
                                         title="Delete">
