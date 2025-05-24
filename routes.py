@@ -127,15 +127,15 @@ def upload_file():
         signature = None
         signature_verified = False
         
-        if user.private_key:
+        if user.private_key and user.public_key:
             try:
                 signature = RSACrypto.sign_file_hash(file_hash, user.private_key)
                 signature_verified = True
-                flash('File uploaded and signed successfully!', 'success')
+                flash('File đã được tải lên và ký số thành công!', 'success')
             except Exception as e:
-                flash(f'File uploaded but signing failed: {str(e)}', 'warning')
+                flash(f'File đã được tải lên nhưng ký số thất bại: {str(e)}', 'warning')
         else:
-            flash('File uploaded but not signed (no private key found)', 'warning')
+            flash('File đã được tải lên nhưng chưa được ký số (chưa có khóa RSA). Hãy tạo khóa RSA để ký số file.', 'warning')
         
         # Save file record
         file_record = FileRecord(
@@ -168,6 +168,10 @@ def files():
         db.session.commit()
     
     user_files = FileRecord.query.filter_by(user_id=user.id).order_by(FileRecord.uploaded_at.desc()).all()
+    
+    # Add warning flash message if user has no keys
+    if not user.private_key or not user.public_key:
+        flash('Bạn chưa có khóa RSA. Vui lòng tạo khóa để ký số các file.', 'warning')
     
     return render_template('files.html', user=user, files=user_files)
 
