@@ -1,16 +1,62 @@
 
 # 🔐 Hệ Thống Truyền File An Toàn với Chữ Ký Số RSA
 
-Hệ thống cho phép người dùng truyền file an toàn với tính năng chữ ký số RSA, giúp đảm bảo tính toàn vẹn và xác thực của dữ liệu.
+## 📋 Mô Tả Hệ Thống
+
+Hệ thống Truyền File An Toàn với Chữ Ký Số RSA là một giải pháp bảo mật toàn diện cho việc trao đổi và lưu trữ file. Hệ thống sử dụng công nghệ mã hóa RSA hiện đại với độ dài khóa 2048-bit để đảm bảo tính xác thực và toàn vẹn của dữ liệu.
+
+### 🔒 Cơ Chế Hoạt Động
+
+1. **Tạo Khóa RSA**:
+   - Hệ thống tạo cặp khóa RSA 2048-bit
+   - Khóa công khai dùng để xác thực
+   - Khóa riêng tư dùng để ký số
+
+2. **Quy Trình Ký Số**:
+   - Tính toán mã hash SHA-256 của file
+   - Ký số hash bằng khóa riêng tư
+   - Lưu trữ chữ ký số cùng file
+
+3. **Xác Thực File**:
+   - Tính toán lại hash của file
+   - Xác thực chữ ký bằng khóa công khai
+   - Kiểm tra tính toàn vẹn dữ liệu
 
 ## ✨ Tính Năng Chính
 
-- 🔑 Tạo và quản lý cặp khóa RSA
-- 📤 Upload file với chữ ký số
-- ✅ Xác thực tính toàn vẹn file
-- 📝 Ký số tự động cho file
-- 🔍 Kiểm tra trạng thái chữ ký
-- 📊 Quản lý file đã upload
+### 🔑 Quản Lý Khóa
+- Tạo cặp khóa RSA 2048-bit tự động
+- Xuất/Nhập khóa công khai và riêng tư
+- Quản lý nhiều cặp khóa cho nhiều người dùng
+- Bảo vệ khóa riêng tư an toàn
+
+### 📤 Upload và Ký Số
+- Tải lên file với giao diện thân thiện
+- Ký số tự động khi có khóa RSA
+- Hỗ trợ nhiều định dạng file
+- Giới hạn dung lượng file 50MB
+- Tính toán và lưu trữ mã hash SHA-256
+
+### ✅ Xác Thực và Kiểm Tra
+- Xác thực chữ ký số real-time
+- Kiểm tra tính toàn vẹn file
+- Cảnh báo khi file bị thay đổi
+- Hiển thị trạng thái xác thực trực quan
+- Lưu lịch sử xác thực
+
+### 📊 Quản Lý File
+- Giao diện quản lý file trực quan
+- Xem thông tin chi tiết file
+- Tải xuống file và chữ ký
+- Xóa file với xác nhận
+- Phân loại file theo trạng thái
+
+### 🔍 Tính Năng Bảo Mật
+- Mã hóa RSA 2048-bit
+- Hash file với SHA-256
+- Xác thực người dùng
+- Kiểm soát truy cập
+- Ghi log hoạt động
 
 ## 🛠️ Công Nghệ Sử Dụng
 
