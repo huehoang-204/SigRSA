@@ -68,14 +68,29 @@ python main.py
 ## 📁 Cấu Trúc Thư Mục
 
 ```
-├── app.py          # Khởi tạo ứng dụng
-├── routes.py       # Định tuyến và xử lý request
-├── models.py       # Mô hình dữ liệu
-├── crypto_utils.py # Tiện ích mã hóa
-├── static/         # CSS, JavaScript
-├── templates/      # Giao diện HTML
-├── uploads/        # Thư mục chứa file
-└── keys/          # Thư mục chứa khóa
+├── instance/                  # Thư mục chứa database
+│   └── secure_transfer.db    # File database SQLite
+├── keys/                     # Thư mục lưu trữ khóa
+├── static/                   # Tài nguyên tĩnh
+│   ├── css/                 # Thư mục CSS
+│   │   └── style.css       # File CSS chính
+│   └── js/                  # Thư mục JavaScript
+│       └── main.js         # File JavaScript chính
+├── templates/                # Thư mục template
+│   ├── base.html           # Template cơ sở
+│   ├── files.html          # Trang quản lý file
+│   ├── index.html          # Trang chủ
+│   ├── index_new.html      # Trang chủ mới
+│   ├── keys.html           # Trang quản lý khóa
+│   └── upload.html         # Trang upload file
+├── uploads/                  # Thư mục lưu trữ file
+├── app.py                    # Khởi tạo ứng dụng Flask
+├── crypto_utils.py           # Tiện ích mã hóa
+├── main.py                   # File chạy chính
+├── models.py                 # Mô hình dữ liệu
+├── routes.py                 # Định tuyến và xử lý request
+├── requirements.txt          # Danh sách thư viện
+└── README.md                 # Tài liệu hướng dẫn
 ```
 
 ## 🤝 Đóng Góp
