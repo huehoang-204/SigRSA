@@ -1,4 +1,5 @@
 import os
+import io
 import uuid
 from datetime import datetime
 from flask import render_template, request, redirect, url_for, flash, session, send_file, jsonify
@@ -55,6 +56,58 @@ def keys():
         db.session.commit()
     
     return render_template('keys.html', user=user)
+
+@app.route('/download_public_key')
+def download_public_key():
+    """Download public key file"""
+    user = User.query.first()
+    if not user or not user.public_key:
+        flash('No public key available', 'error')
+        return redirect(url_for('keys'))
+    
+    return send_file(
+        io.BytesIO(user.public_key.encode()),
+        mimetype='text/plain',
+        as_attachment=True,
+        download_name='public_key.pem'
+    )
+
+@app.route('/download_private_key')
+def download_private_key():
+    """Download private key file"""
+    user = User.query.first()
+    if not user or not user.private_key:
+        flash('No private key available', 'error')
+        return redirect(url_for('keys'))
+    
+    return send_file(
+        io.BytesIO(user.private_key.encode()),
+        mimetype='text/plain',
+        as_attachment=True,
+        download_name='private_key.pem'
+    )
+
+@app.route('/download_guide')
+def download_guide():
+    """Download usage guide"""
+    guide_content = """# Hướng dẫn sử dụng hệ thống
+1. Tạo cặp khóa RSA mới
+2. Tải khóa công khai và khóa riêng tư
+3. Sử dụng khóa để ký và xác minh file
+4. Cấu hình tự động gửi file"""
+    
+    return send_file(
+        io.BytesIO(guide_content.encode()),
+        mimetype='text/markdown',
+        as_attachment=True,
+        download_name='guide.md'
+    )
+
+@app.route('/generate_after_code')
+def generate_after_code():
+    """Generate unique after-code"""
+    code = str(uuid.uuid4())[:8].upper()
+    return jsonify({'code': code})
 
 @app.route('/generate_keys', methods=['POST'])
 def generate_keys():

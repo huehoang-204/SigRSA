@@ -1,3 +1,4 @@
+
 {% extends "base.html" %}
 
 {% block title %}Quản lý khóa - Secure File Transfer{% endblock %}
@@ -39,50 +40,40 @@
                         </button>
                     </div>
 
-                    <div class="card bg-light">
-                        <div class="card-body">
-                            <h6 class="card-title">
-                                <i class="fas fa-shield-alt me-2"></i>Thông tin bảo mật
-                            </h6>
-                            <ul class="list-unstyled mb-0">
-                                <li><i class="fas fa-check text-success me-2"></i>Khóa được tạo và lưu trữ an toàn</li>
-                                <li><i class="fas fa-check text-success me-2"></i>Sử dụng thuật toán RSA</li>
-                                <li><i class="fas fa-check text-success me-2"></i>Độ dài khóa: 2048 bit</li>
-                            </ul>
-                        </div>
+                    <div class="mb-4">
+                        <h5>Tải xuống khóa:</h5>
+                        <button class="btn btn-outline-success me-2" onclick="downloadPublicKey()">
+                            <i class="fas fa-download me-1"></i>Tải khóa công khai
+                        </button>
+                        <button class="btn btn-outline-warning" onclick="downloadPrivateKey()">
+                            <i class="fas fa-download me-1"></i>Tải khóa riêng tư
+                        </button>
                     </div>
                 </div>
 
                 <div class="col-md-6">
-                    {% if user.private_key and user.public_key %}
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <h6 class="card-title">Khóa công khai</h6>
-                            <div class="input-group">
-                                <input type="text" class="form-control font-monospace" value="{{ user.public_key[:32] }}..." readonly>
-                                <button class="btn btn-outline-secondary" onclick="copyToClipboard('{{ user.public_key }}')">
-                                    <i class="fas fa-copy"></i>
-                                </button>
-                            </div>
-                        </div>
+                    <div class="mb-4">
+                        <h5>Cấu hình tự động:</h5>
+                        <button class="btn btn-outline-info me-2" onclick="configureAutoSend()">
+                            <i class="fas fa-cog me-1"></i>Cấu hình tự động gửi file
+                        </button>
+                        <button class="btn btn-outline-primary" onclick="downloadGuide()">
+                            <i class="fas fa-file-alt me-1"></i>Tải hướng dẫn chi tiết
+                        </button>
                     </div>
 
-                    <div class="card">
-                        <div class="card-body">
-                            <h6 class="card-title">Khóa riêng tư</h6>
-                            <div class="input-group">
-                                <input type="text" class="form-control font-monospace" value="{{ user.private_key[:32] }}..." readonly>
-                                <button class="btn btn-outline-secondary" onclick="copyToClipboard('{{ user.private_key }}')">
-                                    <i class="fas fa-copy"></i>
-                                </button>
-                            </div>
-                            <small class="text-muted">
-                                <i class="fas fa-exclamation-triangle me-1"></i>
-                                Không chia sẻ khóa riêng tư với bất kỳ ai
-                            </small>
+                    <div class="mb-4">
+                        <h5>Mã sau:</h5>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="afterCode" readonly>
+                            <button class="btn btn-outline-secondary" onclick="generateAfterCode()">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                            <button class="btn btn-outline-primary" onclick="copyAfterCode()">
+                                <i class="fas fa-copy"></i>
+                            </button>
                         </div>
                     </div>
-                    {% endif %}
                 </div>
             </div>
         </div>
@@ -94,39 +85,59 @@
 <script>
 function generateKeys() {
     const generateBtn = document.getElementById('generateBtn');
-    const originalText = generateBtn.innerHTML;
     generateBtn.disabled = true;
     generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Đang tạo khóa...';
 
     fetch('/generate_keys', {
-        method: 'POST',
+        method: 'POST'
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Reload page to show new keys
-            location.reload();
-        } else {
-            alert('Lỗi: ' + data.message);
+            document.getElementById('keyStatus').innerHTML = `
+                <span class="badge bg-success">
+                    <i class="fas fa-check-circle me-1"></i>Đã có khóa
+                </span>`;
+            generateBtn.innerHTML = '<i class="fas fa-plus-circle me-1"></i>Tạo cặp khóa mới';
+            generateBtn.disabled = false;
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Đã xảy ra lỗi khi tạo khóa');
-    })
-    .finally(() => {
+        generateBtn.innerHTML = '<i class="fas fa-plus-circle me-1"></i>Tạo cặp khóa mới';
         generateBtn.disabled = false;
-        generateBtn.innerHTML = originalText;
     });
 }
 
-function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => {
-        alert('Đã sao chép vào clipboard!');
-    }).catch(err => {
-        console.error('Failed to copy:', err);
-        alert('Không thể sao chép. Vui lòng thử lại.');
+function downloadPublicKey() {
+    window.location.href = '/download_public_key';
+}
+
+function downloadPrivateKey() {
+    window.location.href = '/download_private_key';
+}
+
+function configureAutoSend() {
+    // To be implemented
+    alert('Tính năng đang được phát triển');
+}
+
+function downloadGuide() {
+    window.location.href = '/download_guide';
+}
+
+function generateAfterCode() {
+    fetch('/generate_after_code')
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('afterCode').value = data.code;
     });
+}
+
+function copyAfterCode() {
+    const codeInput = document.getElementById('afterCode');
+    codeInput.select();
+    document.execCommand('copy');
 }
 </script>
 {% endblock %}
