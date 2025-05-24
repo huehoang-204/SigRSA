@@ -44,6 +44,44 @@ Hệ thống Truyền File An Toàn với Chữ Ký Số RSA là một giải ph
 - Hiển thị trạng thái xác thực trực quan
 - Lưu lịch sử xác thực
 
+
+```mermaid
+graph TD
+    A[Người Dùng] -->|1. Upload File| B[Server]
+    B -->|2. Tính Hash SHA-256| C{File Hash}
+    
+    D[Khóa Riêng Tư RSA] -->|3. Ký Số| E[Chữ Ký Số]
+    C -->|3. Ký Số| E
+    
+    B -->|4. Lưu Trữ| F[(Database)]
+    F -->|Lưu| G[File Gốc]
+    F -->|Lưu| H[File Hash]
+    F -->|Lưu| I[Chữ Ký Số]
+    
+    J[Người Nhận] -->|5. Download| K[File + Chữ Ký]
+    K -->|6. Tính Hash Mới| L{Hash Mới}
+    
+    M[Khóa Công Khai RSA] -->|7. Xác Thực| N{Kiểm Tra}
+    L -->|7. Xác Thực| N
+    I -->|7. Xác Thực| N
+    
+    N -->|Hợp Lệ| O[File Nguyên Vẹn]
+    N -->|Không Hợp Lệ| P[File Đã Bị Sửa]
+    
+    style A fill:#95c7f3,stroke:#333,stroke-width:2px
+    style B fill:#f9d293,stroke:#333,stroke-width:2px
+    style C fill:#c3e6cb,stroke:#333,stroke-width:2px
+    style D fill:#f5c6cb,stroke:#333,stroke-width:2px
+    style E fill:#c3e6cb,stroke:#333,stroke-width:2px
+    style F fill:#bee5eb,stroke:#333,stroke-width:2px
+    style J fill:#95c7f3,stroke:#333,stroke-width:2px
+    style N fill:#ffeeba,stroke:#333,stroke-width:2px
+    style O fill:#c3e6cb,stroke:#333,stroke-width:2px
+    style P fill:#f5c6cb,stroke:#333,stroke-width:2px
+```
+
+
+
 ### 📊 Quản Lý File
 - Giao diện quản lý file trực quan
 - Xem thông tin chi tiết file
