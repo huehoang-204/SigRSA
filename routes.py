@@ -87,6 +87,27 @@ def download_private_key():
         download_name='private_key.pem'
     )
 
+@app.route('/download_signature/<int:file_id>')
+def download_signature(file_id):
+    """Download file signature"""
+    # Get default user
+    user = User.query.first()
+    if not user:
+        flash('No user found', 'error')
+        return redirect(url_for('files'))
+    
+    file_record = FileRecord.query.filter_by(id=file_id, user_id=user.id).first()
+    if not file_record or not file_record.signature:
+        flash('Signature not found', 'error')
+        return redirect(url_for('files'))
+    
+    return send_file(
+        io.BytesIO(file_record.signature.encode()),
+        mimetype='text/plain',
+        as_attachment=True,
+        download_name=f'{file_record.original_filename}.sig'
+    )
+
 @app.route('/download_guide')
 def download_guide():
     """Download usage guide"""

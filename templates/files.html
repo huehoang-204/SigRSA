@@ -214,16 +214,16 @@ function verifySignature(fileId) {
             let badgeClass = '';
             let iconClass = '';
 
+            let message = '';
+            let type = 'info';
+
             switch(data.status) {
                 case 'valid':
-                    badgeClass = 'bg-success';
-                    iconClass = 'fas fa-check-circle';
-                    resultHtml = `
-                        <div class="alert alert-success">
-                            <i class="${iconClass} me-2"></i>
-                            ${data.message}
-                        </div>
-                    `;
+                    message = 'Chữ ký hợp lệ! File không bị thay đổi.';
+                    type = 'success';
+                    if (confirm('Bạn có muốn tải xuống chữ ký số không?')) {
+                        window.location.href = `/download_signature/${fileId}`;
+                    }
                     break;
                 case 'invalid':
                     badgeClass = 'bg-danger';
@@ -306,4 +306,3 @@ function verifySignature(fileId) {
 }
 </script>
 {% endblock %}
-</replit_final_file>
