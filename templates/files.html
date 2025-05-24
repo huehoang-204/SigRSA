@@ -221,19 +221,22 @@ function verifySignature(fileId) {
                 case 'valid':
                     message = 'Chữ ký hợp lệ! File không bị thay đổi.';
                     type = 'success';
+                    const verificationModal = new bootstrap.Modal(document.getElementById('verificationModal'));
                     document.getElementById('verificationResult').innerHTML = `
-                        <div class="alert alert-success">
-                            <i class="fas fa-check-circle me-2"></i>
-                            <strong>${message}</strong>
-                        </div>
-                        <div class="mt-3 text-center">
-                            <p>Bạn có muốn tải chữ ký số không?</p>
-                            <button class="btn btn-primary me-2" onclick="window.location.href='/download_signature/${fileId}'">
-                                <i class="fas fa-download me-1"></i>Tải xuống
-                            </button>
-                            <button class="btn btn-secondary" data-bs-dismiss="modal">
-                                <i class="fas fa-times me-1"></i>Đóng
-                            </button>
+                        <div class="text-center">
+                            <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                            <h5 class="mb-4">${message}</h5>
+                            <div class="alert alert-info">
+                                <p class="mb-0">Bạn có muốn tải chữ ký số không?</p>
+                            </div>
+                            <div class="mt-4">
+                                <button class="btn btn-primary me-2" onclick="window.location.href='/download_signature/${fileId}'">
+                                    <i class="fas fa-download me-1"></i>Tải xuống chữ ký
+                                </button>
+                                <button class="btn btn-secondary" data-bs-dismiss="modal">
+                                    <i class="fas fa-times me-1"></i>Đóng
+                                </button>
+                            </div>
                         </div>
                     `;
                     const verificationModal = new bootstrap.Modal(document.getElementById('verificationModal'));
