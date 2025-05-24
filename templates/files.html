@@ -51,9 +51,14 @@
                                     <span class="badge bg-success">
                                         <i class="fas fa-signature me-1"></i>Signed
                                     </span>
-                                    <button class="btn btn-sm btn-outline-info ms-1" onclick="verifySignature({{ file.id }})">
-                                        <i class="fas fa-shield-alt"></i> Verify
-                                    </button>
+                                    <div class="btn-group ms-1">
+                                        <button class="btn btn-sm btn-outline-info" onclick="verifySignature({{ file.id }})">
+                                            <i class="fas fa-shield-alt"></i> Verify
+                                        </button>
+                                        <a href="{{ url_for('download_signature', file_id=file.id) }}" class="btn btn-sm btn-outline-success">
+                                            <i class="fas fa-signature"></i> Download Signature
+                                        </a>
+                                    </div>
                                 {% else %}
                                     <span class="badge bg-secondary">
                                         <i class="fas fa-minus me-1"></i>Not Signed
