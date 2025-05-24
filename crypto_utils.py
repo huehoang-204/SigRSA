@@ -1,3 +1,4 @@
+
 import os
 import hashlib
 import base64
@@ -77,20 +78,22 @@ class RSACrypto:
             signature = base64.b64decode(signature_b64.encode('utf-8'))
             
             # Verify signature
-            public_key.verify(
-                signature,
-                file_hash.encode('utf-8'),
-                padding.PSS(
-                    mgf=padding.MGF1(hashes.SHA256()),
-                    salt_length=padding.PSS.MAX_LENGTH
-                ),
-                hashes.SHA256()
-            )
-            return True
-        except InvalidSignature:
-            return False
+            try:
+                public_key.verify(
+                    signature,
+                    file_hash.encode('utf-8'),
+                    padding.PSS(
+                        mgf=padding.MGF1(hashes.SHA256()),
+                        salt_length=padding.PSS.MAX_LENGTH
+                    ),
+                    hashes.SHA256()
+                )
+                return True
+            except InvalidSignature:
+                return False
         except Exception as e:
-            raise Exception(f"Verification failed: {str(e)}")
+            print(f"Verification error: {str(e)}")
+            return False
 
 class FileManager:
     @staticmethod
