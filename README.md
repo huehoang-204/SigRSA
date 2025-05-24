@@ -7,10 +7,22 @@ Hệ thống Truyền File An Toàn với Chữ Ký Số RSA là một giải ph
 
 ### 🔒 Cơ Chế Hoạt Động
 
+#### Sơ Đồ Mã Hóa và Giải Mã RSA
+
+![Cơ chế RSA](https://raw.githubusercontent.com/replit/attachments/main/image_1748104184027.png)
+
+Trong đó:
+- **M**: Văn bản gốc cần mã hóa
+- **e, n**: Khóa công khai (Public Key) dùng để mã hóa
+- **d, n**: Khóa riêng tư (Private Key) dùng để giải mã
+- **c**: Văn bản đã được mã hóa
+
+#### Quy Trình Hoạt Động:
+
 1. **Tạo Khóa RSA**:
    - Hệ thống tạo cặp khóa RSA 2048-bit
-   - Khóa công khai dùng để xác thực
-   - Khóa riêng tư dùng để ký số
+   - Khóa công khai (e,n) dùng để xác thực
+   - Khóa riêng tư (d,n) dùng để ký số
 
 2. **Quy Trình Ký Số**:
    - Tính toán mã hash SHA-256 của file
